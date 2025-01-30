@@ -702,7 +702,7 @@ class CartRuleCore extends ObjectModel
      *
      * @return bool|mixed|string
      */
-    public function checkValidity(Context $context, $alreadyInCart = false, $display_error = true, $check_carrier = true, $useOrderPrices = false)
+    public function checkValidity(Context $context, $alreadyInCart = false, $display_error = true, $check_carrier = true, $useOrderPrices = false, $skipInitialValidityChecks = false)
     {
         if (!CartRule::isFeatureActive()) {
             return false;
@@ -745,17 +745,20 @@ class CartRuleCore extends ObjectModel
             return (!$display_error) ? true : null;
         }
 
-        if (!$this->active) {
-            return (!$display_error) ? false : $this->trans('This voucher is disabled', [], 'Shop.Notifications.Error');
-        }
-        if (!$this->quantity) {
-            return (!$display_error) ? false : $this->trans('This voucher has already been used', [], 'Shop.Notifications.Error');
-        }
-        if (strtotime($this->date_from) > time()) {
-            return (!$display_error) ? false : $this->trans('This voucher is not valid yet', [], 'Shop.Notifications.Error');
-        }
-        if (strtotime($this->date_to) < time()) {
-            return (!$display_error) ? false : $this->trans('This voucher has expired', [], 'Shop.Notifications.Error');
+        // This will make any deactivated / out of quantities / expired cart rule invalid, however we need to skip these checks whenever we're adding a cart rule in BackOffice.
+        if (!$skipInitialValidityChecks) {
+            if (!$this->active) {
+                return (!$display_error) ? false : $this->trans('This voucher is disabled', [], 'Shop.Notifications.Error');
+            }
+            if (!$this->quantity) {
+                return (!$display_error) ? false : $this->trans('This voucher has already been used', [], 'Shop.Notifications.Error');
+            }
+            if (strtotime($this->date_from) > time()) {
+                return (!$display_error) ? false : $this->trans('This voucher is not valid yet', [], 'Shop.Notifications.Error');
+            }
+            if (strtotime($this->date_to) < time()) {
+                return (!$display_error) ? false : $this->trans('This voucher has expired', [], 'Shop.Notifications.Error');
+            }
         }
 
         if ($cart->id_customer) {
@@ -1811,7 +1814,7 @@ class CartRuleCore extends ObjectModel
      *
      * @return array Error messages
      */
-    public static function autoRemoveFromCart(?Context $context = null, bool $useOrderPrice = false)
+    public static function autoRemoveFromCart(Context $context = null, bool $useOrderPrice = false, $skipInitialInvalidityChecks = false)
     {
         if (!$context) {
             $context = Context::getContext();
@@ -1822,7 +1825,7 @@ class CartRuleCore extends ObjectModel
 
         static $errors = [];
         foreach ($context->cart->getCartRules(CartRule::FILTER_ACTION_ALL, true, $useOrderPrice) as $cart_rule) {
-            if ($error = $cart_rule['obj']->checkValidity($context, true, true, true, $useOrderPrice)) {
+            if ($error = $cart_rule['obj']->checkValidity($context, true, true, true, $useOrderPrice, $skipInitialInvalidityChecks)) {
                 $context->cart->removeCartRule($cart_rule['obj']->id, $useOrderPrice);
                 $context->cart->update();
                 $errors[] = $error;

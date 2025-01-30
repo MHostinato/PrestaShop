@@ -433,7 +433,7 @@ class OrderAmountUpdater
         ?int $orderInvoiceId
     ): void {
         CartRule::autoAddToCart(null, true);
-        CartRule::autoRemoveFromCart(null, true);
+        CartRule::autoRemoveFromCart(null, true, true);
         $carrierId = $order->id_carrier;
 
         $newCartRules = $cart->getCartRules(CartRule::FILTER_ACTION_ALL, false);
