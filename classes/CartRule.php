@@ -511,8 +511,8 @@ class CartRuleCore extends ObjectModel
                  * in the cart rule. So he will be able to use it.
                  */
                 $validAddressExists = Db::getInstance()->getValue('
-                    SELECT crc.id_cart_rule 
-                    FROM ' . _DB_PREFIX_ . 'cart_rule_country crc 
+                    SELECT crc.id_cart_rule
+                    FROM ' . _DB_PREFIX_ . 'cart_rule_country crc
                     INNER JOIN ' . _DB_PREFIX_ . 'address a
                     ON a.id_customer = ' . (int) $id_customer . ' AND
                     a.deleted = 0 AND
@@ -745,25 +745,17 @@ class CartRuleCore extends ObjectModel
             return (!$display_error) ? true : null;
         }
 
-        // All these checks are necessary when you add the cart rule the first time, so when it's not in cart yet
-        // However when it's in the cart and you are checking if the cart rule is still valid (when performing auto remove)
-        // these rules are outdated For example:
-        //  - the cart rule can now be disabled but it was at the time it was applied, so it doesn't need to be removed
-        //  - the current date is not in the range any more but it was at the time
-        //  - the quantity is now zero but it was not when it was added
-        if (!$alreadyInCart) {
-            if (!$this->active) {
-                return (!$display_error) ? false : $this->trans('This voucher is disabled', [], 'Shop.Notifications.Error');
-            }
-            if (!$this->quantity) {
-                return (!$display_error) ? false : $this->trans('This voucher has already been used', [], 'Shop.Notifications.Error');
-            }
-            if (strtotime($this->date_from) > time()) {
-                return (!$display_error) ? false : $this->trans('This voucher is not valid yet', [], 'Shop.Notifications.Error');
-            }
-            if (strtotime($this->date_to) < time()) {
-                return (!$display_error) ? false : $this->trans('This voucher has expired', [], 'Shop.Notifications.Error');
-            }
+        if (!$this->active) {
+            return (!$display_error) ? false : $this->trans('This voucher is disabled', [], 'Shop.Notifications.Error');
+        }
+        if (!$this->quantity) {
+            return (!$display_error) ? false : $this->trans('This voucher has already been used', [], 'Shop.Notifications.Error');
+        }
+        if (strtotime($this->date_from) > time()) {
+            return (!$display_error) ? false : $this->trans('This voucher is not valid yet', [], 'Shop.Notifications.Error');
+        }
+        if (strtotime($this->date_to) < time()) {
+            return (!$display_error) ? false : $this->trans('This voucher has expired', [], 'Shop.Notifications.Error');
         }
 
         if ($cart->id_customer) {
