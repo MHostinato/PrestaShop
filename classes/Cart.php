@@ -442,7 +442,7 @@ class CartCore extends ObjectModel
      *
      * @return array|false|mysqli_result|PDOStatement|resource|null Database result
      */
-    public function getCartRules($filter = CartRule::FILTER_ACTION_ALL, $autoAdd = true, $useOrderPrices = false)
+    public function getCartRules($filter = CartRule::FILTER_ACTION_ALL, $autoAdd = true, $useOrderPrices = false, $skipInitialInvalidityChecks = false)
     {
         // Define virtual context to prevent case where the cart is not the in the global context
         $virtual_context = Context::getContext()->cloneContext();
@@ -454,7 +454,7 @@ class CartCore extends ObjectModel
             return [];
         }
         if ($autoAdd) {
-            CartRule::autoAddToCart($virtual_context, $useOrderPrices);
+            CartRule::autoAddToCart($virtual_context, $useOrderPrices, $skipInitialInvalidityChecks);
         }
 
         $cache_key = 'Cart::getCartRules_' . $this->id . '-' . $filter;

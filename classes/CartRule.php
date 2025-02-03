@@ -1737,7 +1737,7 @@ class CartRuleCore extends ObjectModel
      * @param Context|null $context Context instance
      * @param bool $useOrderPrices
      */
-    public static function autoAddToCart(?Context $context = null, bool $useOrderPrices = false)
+    public static function autoAddToCart(?Context $context = null, bool $useOrderPrices = false, $skipInitialInvalidityChecks = false)
     {
         if ($context === null) {
             $context = Context::getContext();
@@ -1798,7 +1798,7 @@ class CartRuleCore extends ObjectModel
             if ($cart_rules) {
                 foreach ($cart_rules as $cart_rule) {
                     /** @var CartRule $cart_rule */
-                    if ($cart_rule->checkValidity($context, false, false, true, $useOrderPrices)) {
+                    if ($cart_rule->checkValidity($context, false, false, true, $useOrderPrices, $skipInitialInvalidityChecks)) {
                         $context->cart->addCartRule($cart_rule->id, $useOrderPrices);
                     }
                 }
